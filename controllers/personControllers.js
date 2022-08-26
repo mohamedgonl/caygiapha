@@ -27,12 +27,12 @@ const getPersonInfo = async (req, res) => {
 
 const createPerson = async (req, res) => {
     try {
-        let person;
+        let person = new Person({name: req.body.name});
         // set gender
         if (["male", "female", "other"].includes(req.body.gender)) 
-            person = new Person({name: req.body.name, gender: req.body.gender})
+            person.gender = req.body.gender
         else 
-            person = new Person({name: req.body.name, gender: 'other'});
+            person.gender = 'other'
 
         await person.save();
         res.send({msg: 'Create person success', person: person})
@@ -55,7 +55,7 @@ const createChild = async (req, res) => {
          else {
             let child = new Person({
                 ... info,
-                level: parent.level + 1,
+                // level: parent.level + 1,
                 isDirChild: true,
                 pid: parent.id
             });
@@ -80,9 +80,9 @@ const createChild = async (req, res) => {
                     if (partner.gender == 'female') 
                         child.mid = partner.id;
 
-                    // update child's tree ids
-                    child.tids.push(...partner.tids);        
-                }
+                        // update child's tree ids
+                        child.tids.push(...partner.tids);        
+                    }
             }
             if (parent.gender == 'male') 
                 child.fid = parent.id;
@@ -107,7 +107,7 @@ const createChild = async (req, res) => {
 const createPartner = async (req, res) => {
     try {
 
-        const info = req.body.info;
+        const info = req.body;
         const id = req.params.id;
 
         // check id
@@ -118,24 +118,51 @@ const createPartner = async (req, res) => {
             id: id
         })
         else {
+            // create partner
             let partner = new Person({
                 ...info,
-                level: person.level
+                // level: person.level,
+                pids: [person.id]
+            })
+            partner.tids.push(...person.tids);
+            person.pids.push(partner.id)
+            await person.save();
+            await partner.save();
+            res.send({
+                msg: 'Create partner success',
+                partner: partner
             })
         }
         
     } catch (err) {
-        
+        res.send({
+            error: err
+        })
     }
 }
 
 const editInfo = async (req, res) => {
-    let id = req.params.id;
-    let data = req.body;
-    let person = await Person.findByIdAndUpdate(id, {
-        ... data
-    })
-    res.send({person: person})
+    try {
+        let id = req.params.id;
+        let data = req.body;
+        let gender = req.body.gender;
+        if(gender!=null && !["male","female","other"].includes(gender)) res.send({
+            status: 'Failed',
+            msg: 'Gender invalid'
+        })
+        else {
+            let person = await Person.findByIdAndUpdate(id, {
+                ... data
+            })
+            res.send({
+                msg: 'Update success',
+                person: person})
+        }
+    } catch (err) {
+        res.send({
+            error: err
+        })
+    }
 }
 
 const deletePerson = async (req, res) => {

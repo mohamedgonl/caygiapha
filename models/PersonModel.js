@@ -38,11 +38,11 @@ const Person = new Schema({
         type: Schema.Types.ObjectId,
         ref: 'Person',
     }], 
-    level : { // heigth of node
-        type: Number,
-        require: true,
-        default: 0
-    }, 
+    // level : { // heigth of node
+    //     type: Number,
+    //     require: true,
+    //     default: 0
+    // }, 
     isDirChild : {// is direct child or not
         type: Boolean,
         default: false

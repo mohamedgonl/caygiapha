@@ -98,8 +98,16 @@ const deleteTree = async (req, res) => {
     try {
         let {id} = req.params;
         let trees;
-        if (id) 
+        if (id) {
             trees = await Tree.findByIdAndDelete(id);
+            await Person.updateMany({
+                tids: id
+            },{
+                $pull: {
+                    tids: id
+                }
+            })
+        } 
          else 
             trees = await Tree.deleteMany();
     
